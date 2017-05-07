@@ -1,6 +1,8 @@
+import ssl, urllib2
+
 NAME = 'Arconai TV'
-BASE_URL = 'https://ssl-proxy.my-addr.org/myaddrproxy.php/https/www.arconaitv.me/'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36'}
+BASE_URL = 'https://www.arconaitv.me'
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30'}
 ICON = 'icon-default.jpg'
 ART = 'art-default.jpg'
 
@@ -14,7 +16,7 @@ def Start():
 def MainMenu():
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromURL(BASE_URL, cacheTime=CACHE_1HOUR, headers=HTTP_HEADERS)
+	html = HTML.ElementFromString(HTTPGet(BASE_URL))
 	nav = html.xpath('//ul[@class="mega_dropdown"]')[0]
 
 	for channel in nav.xpath('.//a'):
@@ -49,6 +51,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 					PartObject(key=HTTPLiveStreamURL(Callback(PlayVideo, id=id)))
 				],
 				video_resolution = 'sd',
+				audio_channels = 2,
 				optimized_for_streaming = True
 			)
 		]
@@ -64,8 +67,17 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 @indirect
 def PlayVideo(id, **kwargs):
 
-	html = HTML.ElementFromURL('%s%s/' % (BASE_URL, id), cacheTime=60, headers=HTTP_HEADERS)
-	video_url = html.xpath('//video/source/@src')[0].split('/http/')[-1]
-	video_url = 'http://%s' % (video_url)
+	html = HTML.ElementFromString(HTTPGet('%s/%s/' % (BASE_URL, id)))
+	video_url = html.xpath('//video/source/@src')[0]
 
 	return IndirectResponse(VideoClipObject, key=video_url)
+
+####################################################################################################
+@route('/video/arconaitv/getdata')
+def HTTPGet(url):
+
+	req = urllib2.Request(url, headers=HTTP_HEADERS)
+	ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+	data = urllib2.urlopen(req, context=ctx).read()
+
+	return data
