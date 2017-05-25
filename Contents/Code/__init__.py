@@ -68,7 +68,9 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 def PlayVideo(id, **kwargs):
 
 	html = HTML.ElementFromString(HTTPGet('%s/%s/' % (BASE_URL, id)))
-	video_url = html.xpath('//video/source/@src')[0]
+	json_data = html.xpath('//*[contains(@data-item, ".m3u8")]/@data-item')[0]
+	json_obj = JSON.ObjectFromString(json_data)
+	video_url = json_obj['sources'][0]['src']
 
 	return IndirectResponse(VideoClipObject, key=video_url)
 
