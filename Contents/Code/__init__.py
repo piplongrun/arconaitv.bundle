@@ -1,7 +1,5 @@
-import ssl, urllib2
-
 NAME = 'Arconai TV'
-BASE_URL = 'https://www.arconaitv.me'
+BASE_URL = 'http://arconaitv.me'
 HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30'}
 ICON = 'icon-default.jpg'
 ART = 'art-default.jpg'
@@ -16,17 +14,13 @@ def Start():
 def MainMenu():
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromString(HTTPGet(BASE_URL))
-	nav = html.xpath('//ul[@class="mega_dropdown"]')[0]
+	html = HTML.ElementFromURL(BASE_URL)
+	nav = html.xpath('//div[@id="shows"]')[0]
 
 	for channel in nav.xpath('.//a'):
 
-		id = channel.get('href').split('/')[-2]
-
-		if 'arconaitv.me' in id:
-			continue
-
-		title = channel.xpath('./span/span/text()')[0].strip()
+		id = channel.get('href').split('?id=')[-1]
+		title = channel.get('title')
 
 		oc.add(CreateVideoClipObject(
 			id = id,
@@ -67,19 +61,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 @indirect
 def PlayVideo(id, **kwargs):
 
-	html = HTML.ElementFromString(HTTPGet('%s/%s/' % (BASE_URL, id)))
-	json_data = html.xpath('//*[contains(@data-item, ".m3u8")]/@data-item')[0]
-	json_obj = JSON.ObjectFromString(json_data)
-	video_url = json_obj['sources'][0]['src']
+	html = HTML.ElementFromURL('%s/stream.php?id=%s' % (BASE_URL, id))
+	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
 	return IndirectResponse(VideoClipObject, key=video_url)
-
-####################################################################################################
-@route('/video/arconaitv/getdata')
-def HTTPGet(url):
-
-	req = urllib2.Request(url, headers=HTTP_HEADERS)
-	ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-	data = urllib2.urlopen(req, context=ctx).read()
-
-	return data
