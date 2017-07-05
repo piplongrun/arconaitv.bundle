@@ -1,8 +1,15 @@
+import os
+
 NAME = 'Arconai TV'
 BASE_URL = 'http://arconaitv.me'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30'}
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 ART = 'art-default.jpg'
+
+if 'PLEXTOKEN' in os.environ:
+	PLEX_TOKEN = os.environ['PLEXTOKEN']
+else:
+	PLEX_TOKEN = None
 
 ####################################################################################################
 def Start():
@@ -13,8 +20,11 @@ def Start():
 @handler('/video/arconaitv', NAME, art=ART, thumb=ICON)
 def MainMenu():
 
+	if not PLEX_TOKEN:
+		return ObjectContainer(header="Token error", message="Cannot find Plex Media Server token")
+
 	oc = ObjectContainer()
-	html = HTML.ElementFromURL(BASE_URL)
+	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
 	nav = html.xpath('//div[@id="shows"]')[0]
 
 	for channel in nav.xpath('.//a'):
@@ -42,7 +52,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		items = [
 			MediaObject(
 				parts = [
-					PartObject(key=HTTPLiveStreamURL(Callback(PlayVideo, id=id)))
+					PartObject(key=HTTPLiveStreamURL(Callback(Playlist, id=id)))
 				],
 				video_resolution = 'sd',
 				audio_channels = 2,
@@ -57,11 +67,32 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		return videoclip_obj
 
 ####################################################################################################
-@route('/video/arconaitv/playvideo.m3u8')
-@indirect
-def PlayVideo(id, **kwargs):
+@route('/video/arconaitv/playlist.m3u8')
+def Playlist(id, **kwargs):
 
-	html = HTML.ElementFromURL('%s/stream.php?id=%s' % (BASE_URL, id))
+	url = '%s/stream.php?id=%s' % (BASE_URL, id)
+
+	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=0)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	return IndirectResponse(VideoClipObject, key=video_url)
+	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+	new_playlist = ''
+
+	for line in original_playlist.splitlines():
+
+		if line.startswith('http') or '.ts' in line:
+			new_playlist += Callback(ContentOfURL, url=line) + '&X-Plex-Token=' + PLEX_TOKEN + '\n'
+		else:
+			new_playlist += line + '\n'
+
+	return new_playlist
+
+####################################################################################################
+def ContentOfURL(url):
+
+	try:
+		content = HTTP.Request(url, headers=HTTP_HEADERS, cacheTime=0).content
+	except Ex.HTTPError, e:
+		raise Ex.MediaNotAvailable
+
+	return content
