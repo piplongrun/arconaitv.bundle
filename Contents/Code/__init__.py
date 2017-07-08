@@ -24,7 +24,7 @@ def MainMenu():
 		return ObjectContainer(header="Token error", message="Cannot find Plex Media Server token")
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS)
+	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
 	nav = html.xpath('//div[@id="shows"]')[0]
 
 	for channel in nav.xpath('.//a'):
@@ -72,10 +72,10 @@ def Playlist(id, **kwargs):
 
 	url = '%s/stream.php?id=%s' % (BASE_URL, id)
 
-	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS)
+	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=0)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS).content
+	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
