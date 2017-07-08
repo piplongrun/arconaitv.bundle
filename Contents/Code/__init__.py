@@ -24,7 +24,7 @@ def MainMenu():
 		return ObjectContainer(header="Token error", message="Cannot find Plex Media Server token")
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
+	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS)
 	nav = html.xpath('//div[@id="shows"]')[0]
 
 	for channel in nav.xpath('.//a'):
@@ -72,27 +72,26 @@ def Playlist(id, **kwargs):
 
 	url = '%s/stream.php?id=%s' % (BASE_URL, id)
 
-	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=0)
+	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS).content
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
 
 		if line.startswith('http') or '.ts' in line:
-			new_playlist += Callback(ContentOfURL, url=line) + '&X-Plex-Token=' + PLEX_TOKEN + '\n'
+			new_playlist += '/video/arconaitv/segment/%s.ts?X-Plex-Token=%s\n' % (String.Encode(line), PLEX_TOKEN)
 		else:
 			new_playlist += line + '\n'
 
 	return new_playlist
 
 ####################################################################################################
-def ContentOfURL(url):
+@route('/video/arconaitv/segment/{url}.ts')
+def DownloadSegment(url):
 
 	try:
-		content = HTTP.Request(url, headers=HTTP_HEADERS, cacheTime=0).content
-	except Ex.HTTPError, e:
-		raise Ex.MediaNotAvailable
-
-	return content
+		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=5.0).content
+	except:
+		return
