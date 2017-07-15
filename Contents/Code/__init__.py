@@ -72,7 +72,7 @@ def Playlist(id, **kwargs):
 
 	url = '%s/stream.php?id=%s' % (BASE_URL, id)
 
-	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=0)
+	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=300)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
 	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
