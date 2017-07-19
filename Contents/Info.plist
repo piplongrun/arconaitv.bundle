@@ -12,5 +12,7 @@
 	<array>
 		<string>NoURLServices</string>
 	</array>
+	<key>PlexPluginCodePolicy</key>
+	<string>Elevated</string>
 </dict>
 </plist>
