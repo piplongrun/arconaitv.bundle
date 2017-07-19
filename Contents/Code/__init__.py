@@ -75,7 +75,14 @@ def Playlist(id, **kwargs):
 	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=300)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+	try:
+		original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+	except:
+		try:
+			original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+		except:
+			raise Ex.MediaNotAvailable
+
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
@@ -92,6 +99,6 @@ def Playlist(id, **kwargs):
 def DownloadSegment(url):
 
 	try:
-		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=5.0).content
+		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=1.0).content
 	except:
-		return
+		return HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.arconaitv/resources/black-h264.ts?X-Plex-Token=%s' % (PLEX_TOKEN)).content
