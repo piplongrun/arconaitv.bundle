@@ -101,4 +101,4 @@ def DownloadSegment(url):
 	try:
 		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=1.0).content
 	except:
-		return HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.arconaitv/resources/black-h264.ts?X-Plex-Token=%s' % (PLEX_TOKEN)).content
+		return HTTP.Request('http://localhost:32400/:/plugins/com.plexapp.plugins.arconaitv/resources/kitten.ts?X-Plex-Token=%s' % (PLEX_TOKEN)).content
