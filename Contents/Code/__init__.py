@@ -29,8 +29,12 @@ def MainMenu():
 
 	for channel in nav.xpath('.//a'):
 
-		id = channel.get('href').split('?id=')[-1]
 		title = channel.get('title')
+
+		if not title:
+			continue
+
+		id = channel.get('href').split('?id=')[-1]
 
 		oc.add(CreateVideoClipObject(
 			id = id,
