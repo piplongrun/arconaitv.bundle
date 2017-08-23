@@ -2,7 +2,7 @@ import os
 
 NAME = 'Arconai TV'
 BASE_URL = 'http://arconaitv.me'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0', 'Referer': BASE_URL}
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 ART = 'art-default.jpg'
 
@@ -48,6 +48,8 @@ def MainMenu():
 @route('/video/arconaitv/createvideoclipobject', include_container=bool)
 def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 
+	ts = str(Datetime.TimestampFromDatetime(Datetime.Now())).split('.')[0]
+
 	videoclip_obj = VideoClipObject(
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
 		rating_key = id,
@@ -56,7 +58,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		items = [
 			MediaObject(
 				parts = [
-					PartObject(key=HTTPLiveStreamURL(Callback(Playlist, id=id)))
+					PartObject(key=HTTPLiveStreamURL(Callback(Playlist, id=id, ts=ts)))
 				],
 				video_resolution = 'sd',
 				audio_channels = 2,
@@ -72,21 +74,14 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 
 ####################################################################################################
 @route('/video/arconaitv/playlist.m3u8')
-def Playlist(id, **kwargs):
+def Playlist(id, ts, **kwargs):
 
-	url = '%s/stream.php?id=%s' % (BASE_URL, id)
+	url = '%s/stream.php?id=%s&_%s' % (BASE_URL, id, ts)
 
-	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=300)
+	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
 	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	try:
-		original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
-	except:
-		try:
-			original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
-		except:
-			raise Ex.MediaNotAvailable
-
+	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
@@ -103,6 +98,6 @@ def Playlist(id, **kwargs):
 def DownloadSegment(url):
 
 	try:
-		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=1.0).content
+		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0, timeout=5.0).content
 	except:
 		return HTTP.Request('http://127.0.0.1:32400/:/plugins/com.plexapp.plugins.arconaitv/resources/kitten.ts?X-Plex-Token=%s' % (PLEX_TOKEN)).content
