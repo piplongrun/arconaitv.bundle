@@ -4,6 +4,7 @@ NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.co'
 HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
+THUMB = 'thumb-default.jpg'
 ART = 'art-default.jpg'
 
 if 'PLEXTOKEN' in os.environ:
@@ -56,7 +57,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
 		rating_key = id,
 		title = title,
-		thumb = R(ICON),
+		thumb = R(THUMB),
 		items = [
 			MediaObject(
 				parts = [
