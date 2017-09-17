@@ -1,7 +1,7 @@
-import os
+import os, ssl, urllib2
 
 NAME = 'Arconai TV'
-BASE_URL = 'http://arconaitv.me'
+BASE_URL = 'https://www.arconaitv.co'
 HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 ART = 'art-default.jpg'
@@ -16,6 +16,8 @@ def Start():
 
 	ObjectContainer.title1 = NAME
 
+	Dict['ts'] = {}
+
 ####################################################################################################
 @handler('/video/arconaitv', NAME, art=ART, thumb=ICON)
 def MainMenu():
@@ -24,7 +26,7 @@ def MainMenu():
 		return ObjectContainer(header="Token error", message="Cannot find Plex Media Server token")
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromURL(BASE_URL, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
+	html = HTML.ElementFromString(HTTPGet(BASE_URL))
 	nav = html.xpath('//div[@id="shows"]')[0]
 
 	for channel in nav.xpath('.//a'):
@@ -76,12 +78,17 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 @route('/video/arconaitv/playlist.m3u8')
 def Playlist(id, ts, **kwargs):
 
-	url = '%s/stream.php?id=%s&_%s' % (BASE_URL, id, ts)
+	if ts in Dict['ts']:
+		video_url = Dict['ts'][ts]
+	else:
+		url = '%s/stream.php?id=%s' % (BASE_URL, id)
+		html = HTML.ElementFromString(HTTPGet(url))
+		video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
 
-	html = HTML.ElementFromURL(url, headers=HTTP_HEADERS, cacheTime=CACHE_1DAY)
-	video_url = html.xpath('//source[contains(@src, ".m3u8")]/@src')[0]
+		Dict['ts'][ts] = str(video_url)
+		Log(" *** Video URL stored for session!")
 
-	original_playlist = HTTP.Request(video_url, headers=HTTP_HEADERS, cacheTime=0).content
+	original_playlist = HTTPGet(video_url)
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
@@ -98,6 +105,16 @@ def Playlist(id, ts, **kwargs):
 def DownloadSegment(url):
 
 	try:
-		return HTTP.Request(String.Decode(url), headers=HTTP_HEADERS, cacheTime=0).content
+		return HTTPGet(String.Decode(url))
 	except:
-		return HTTP.Request('http://127.0.0.1:32400/:/plugins/com.plexapp.plugins.arconaitv/resources/kitten.ts?X-Plex-Token=%s' % (PLEX_TOKEN)).content
+		return HTTPGet('https://piplong.run/kitten.ts')
+
+####################################################################################################
+@route('/video/arconaitv/httpget')
+def HTTPGet(url):
+
+	req = urllib2.Request(url, headers=HTTP_HEADERS)
+	ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+	data = urllib2.urlopen(req, context=ssl_context).read()
+
+	return data
