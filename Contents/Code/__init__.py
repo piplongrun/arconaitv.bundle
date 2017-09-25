@@ -1,7 +1,7 @@
 import os, ssl, urllib2
 
 NAME = 'Arconai TV'
-BASE_URL = 'https://www.arconaitv.co'
+BASE_URL = 'https://www.arconai.tv'
 HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 THUMB = 'thumb-default.jpg'
