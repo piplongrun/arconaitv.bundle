@@ -57,7 +57,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
 		rating_key = id,
 		title = title,
-		thumb = Resource.ContentsOfURLWithFallback(url='https://piplong.run/t/%s.jpg?_%s' % (String.Quote(title.replace(' ', '-').lower()), ts), fallback=THUMB),
+		thumb = Resource.ContentsOfURLWithFallback(url='https://piplong.run/t/%s.jpg?_%s' % (String.Quote(title.replace(' ', '-').lower()), ts[:-4]), fallback=THUMB),
 		items = [
 			MediaObject(
 				parts = [
