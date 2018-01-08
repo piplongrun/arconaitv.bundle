@@ -1,4 +1,4 @@
-import os, ssl, urllib2
+import base64, os, ssl, urllib2
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
@@ -84,12 +84,12 @@ def Playlist(id, ts, **kwargs):
 	else:
 		url = '%s/stream.php?id=%s' % (BASE_URL, id)
 		html = HTML.ElementFromString(HTTPGet(url))
-		js = html.xpath('//script[contains(., "h,u,n,t,e,r")]/text()')
+		js = html.xpath('//script[contains(., "document.getElementsByTagName(\'video\')")]/text()')
 
 		if len(js) < 1:
 			raise Ex.MediaNotAvailable
 
-		data = HTTP.Request('https://piplong.run/api/jsunpack/', data=js[0].split(';', 1)[-1]).content
+		data = HTTP.Request('https://piplong.run/api/jsunpack/', headers={"X-Api-Key": "5e3e6f60bd1fa12f26a64a776a8ae463", "X-Base64-Encoded": "true"}, data=base64.b64encode(js[0].split(';', 1)[-1])).content
 		file = Regex("'src','(.+?)'").search(data)
 
 		if not file:
