@@ -2,7 +2,7 @@ import base64, os, ssl, urllib2
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0', 'Referer': BASE_URL}
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 THUMB = 'thumb-default.jpg'
 ART = 'art-default.jpg'
