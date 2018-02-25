@@ -90,7 +90,7 @@ def Playlist(id, ts, **kwargs):
 			raise Ex.MediaNotAvailable
 
 		data = HTTP.Request('https://piplong.run/api/jsunpack/', headers={"X-Api-Key": "5e3e6f60bd1fa12f26a64a776a8ae463", "X-Base64-Encoded": "true"}, data=base64.b64encode(js[0].split(';', 1)[-1])).content
-		file = Regex("'src','(.+?)'").search(data)
+		file = Regex("'(https:\/\/.+\.m3u8)'").search(data)
 
 		if not file:
 			raise Ex.MediaNotAvailable
