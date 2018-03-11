@@ -55,7 +55,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 
 	videoclip_obj = VideoClipObject(
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
-		rating_key = id,
+		rating_key = 'arconaitv:%s' % (id),
 		title = title,
 		thumb = 'https://piplong.run/t/%s.jpg?_%s' % (String.Quote(title.replace(' ', '-').lower()), ts[:-4]),
 		items = [
