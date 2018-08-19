@@ -2,7 +2,7 @@ import base64, os, ssl, urllib2
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0', 'Referer': BASE_URL}
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:61.0) Gecko/20100101 Firefox/61.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 THUMB = 'thumb-default.jpg'
 ART = 'art-default.jpg'
@@ -27,8 +27,18 @@ def MainMenu():
 		return ObjectContainer(header="Token error", message="Cannot find Plex Media Server token")
 
 	oc = ObjectContainer()
+	oc.add(DirectoryObject(key = Callback(MediaType, title='TV', type_id='shows'), title='TV', thumb=R(THUMB)))
+	oc.add(DirectoryObject(key = Callback(MediaType, title='Movies', type_id='movies'), title='Movies', thumb=R(THUMB)))
+
+	return oc
+
+####################################################################################################
+@route('/video/arconaitv/type/{type_id}')
+def MediaType(title, type_id):
+
+	oc = ObjectContainer()
 	html = HTML.ElementFromString(HTTPGet(BASE_URL))
-	nav = html.xpath('//div[@id="shows"]')[0]
+	nav = html.xpath('//div[@id="{}"]'.format(type_id))[0]
 
 	for channel in nav.xpath('.//a'):
 
@@ -36,6 +46,9 @@ def MainMenu():
 
 		if not title:
 			continue
+
+		if title.endswith(' Movies'):
+			title = title.split(' Movies')[0]
 
 		id = channel.get('href').split('?id=')[-1]
 
@@ -55,9 +68,9 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 
 	videoclip_obj = VideoClipObject(
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
-		rating_key = 'arconaitv:%s' % (id),
+		rating_key = 'arconaitv:{}'.format(id),
 		title = title,
-		thumb = 'https://piplong.run/t/%s.jpg?_%s' % (String.Quote(title.replace(' ', '-').lower()), ts[:-4]),
+		thumb = 'https://piplong.run/t/{}.jpg?_{}'.format(String.Quote(title.replace(' ', '-').lower()), ts[:-4]),
 		items = [
 			MediaObject(
 				parts = [
@@ -82,7 +95,7 @@ def Playlist(id, ts, **kwargs):
 	if ts in Dict['ts']:
 		video_url = Dict['ts'][ts]
 	else:
-		url = '%s/stream.php?id=%s' % (BASE_URL, id)
+		url = '{}/stream.php?id={}'.format(BASE_URL, id)
 		html = HTML.ElementFromString(HTTPGet(url))
 		js = html.xpath('//script[contains(., "document.getElementsByTagName(\'video\')")]/text()')
 
@@ -105,7 +118,7 @@ def Playlist(id, ts, **kwargs):
 	for line in original_playlist.splitlines():
 
 		if line.startswith('http') or '.ts' in line:
-			new_playlist += '/video/arconaitv/segment/%s.ts?X-Plex-Token=%s\n' % (String.Encode(line), PLEX_TOKEN)
+			new_playlist += '/video/arconaitv/segment/{}.ts?X-Plex-Token={}\n'.format(String.Encode(line), PLEX_TOKEN)
 		else:
 			new_playlist += line + '\n'
 
