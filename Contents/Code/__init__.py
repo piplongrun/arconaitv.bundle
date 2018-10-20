@@ -1,4 +1,4 @@
-import base64, os, ssl, urllib2
+import base64, certifi, os, requests
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
@@ -37,7 +37,7 @@ def MainMenu():
 def MediaType(title, type_id):
 
 	oc = ObjectContainer()
-	html = HTML.ElementFromString(HTTPGet(BASE_URL))
+	html = HTML.ElementFromString(requests.get(BASE_URL, headers=HTTP_HEADERS, verify=certifi.where()).text)
 	nav = html.xpath('//div[@id="{}"]'.format(type_id))[0]
 
 	for channel in nav.xpath('.//a'):
@@ -96,7 +96,7 @@ def Playlist(id, ts, **kwargs):
 		video_url = Dict['ts'][ts]
 	else:
 		url = '{}/stream.php?id={}'.format(BASE_URL, id)
-		html = HTML.ElementFromString(HTTPGet(url))
+		html = HTML.ElementFromString(requests.get(url, headers=HTTP_HEADERS, verify=certifi.where()).text)
 		js = html.xpath('//script[contains(., "document.getElementsByTagName(\'video\')")]/text()')
 
 		if len(js) < 1:
@@ -107,7 +107,7 @@ def Playlist(id, ts, **kwargs):
 		if not data:
 			raise Ex.MediaNotAvailable
 
-		data = HTTP.Request('https://piplong.run/api/jsunpack/', headers={"X-Api-Key": "5e3e6f60bd1fa12f26a64a776a8ae463", "X-Base64-Encoded": "true"}, data=base64.b64encode(data.group(1))).content
+		data = requests.post('https://piplong.run/api/jsunpack/', headers={"X-Api-Key": "5e3e6f60bd1fa12f26a64a776a8ae463", "X-Base64-Encoded": "true"}, data=base64.b64encode(data.group(1)), verify=certifi.where()).text
 		file = Regex("'(https:\/\/.+\.m3u8)'").search(data)
 
 		if not file:
@@ -117,7 +117,7 @@ def Playlist(id, ts, **kwargs):
 		Dict['ts'][ts] = video_url
 		Log(" *** Video URL stored for session!")
 
-	original_playlist = HTTPGet(video_url)
+	original_playlist = requests.get(video_url, headers=HTTP_HEADERS, verify=False).text
 	new_playlist = ''
 
 	for line in original_playlist.splitlines():
@@ -134,16 +134,6 @@ def Playlist(id, ts, **kwargs):
 def DownloadSegment(url):
 
 	try:
-		return HTTPGet(String.Decode(url))
+		return requests.get(String.Decode(url), headers=HTTP_HEADERS, verify=False).content
 	except:
-		return HTTPGet('https://piplong.run/kitten.ts')
-
-####################################################################################################
-@route('/video/arconaitv/httpget')
-def HTTPGet(url):
-
-	req = urllib2.Request(url, headers=HTTP_HEADERS)
-	ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-	data = urllib2.urlopen(req, context=ssl_context).read()
-
-	return data
+		return requests.get('https://piplong.run/kitten.ts', headers=HTTP_HEADERS, verify=certifi.where()).content

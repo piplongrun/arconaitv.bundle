@@ -8,10 +8,6 @@
 	<string>*</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
-	<key>PlexPluginTesterFlags</key>
-	<array>
-		<string>NoURLServices</string>
-	</array>
 	<key>PlexPluginCodePolicy</key>
 	<string>Elevated</string>
 </dict>
