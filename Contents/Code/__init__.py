@@ -124,6 +124,8 @@ def Playlist(id, ts, **kwargs):
 
 		if line.startswith('http') or '.ts' in line:
 			new_playlist += '/video/arconaitv/segment/{}.ts?X-Plex-Token={}\n'.format(String.Encode(line), PLEX_TOKEN)
+		elif 'EXT-X-DISCONTINUITY' in line:
+			continue
 		else:
 			new_playlist += line + '\n'
 
