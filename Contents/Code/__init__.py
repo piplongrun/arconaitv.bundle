@@ -29,6 +29,7 @@ def MainMenu():
 	oc = ObjectContainer()
 	oc.add(DirectoryObject(key = Callback(MediaType, title='TV', type_id='shows'), title='TV', thumb=R(THUMB)))
 	oc.add(DirectoryObject(key = Callback(MediaType, title='Movies', type_id='movies'), title='Movies', thumb=R(THUMB)))
+	oc.add(DirectoryObject(key = Callback(MediaType, title='Cable', type_id='cable'), title='Cable', thumb=R(THUMB)))
 
 	return oc
 
