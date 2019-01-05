@@ -1,4 +1,5 @@
 import base64, certifi, os, requests
+requests.packages.urllib3.disable_warnings()
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
