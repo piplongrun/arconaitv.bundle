@@ -3,7 +3,7 @@ requests.packages.urllib3.disable_warnings()
 
 NAME = 'Arconai TV'
 BASE_URL = 'https://www.arconaitv.us'
-HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:61.0) Gecko/20100101 Firefox/61.0', 'Referer': BASE_URL}
+HTTP_HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:65.0) Gecko/20100101 Firefox/65.0', 'Referer': BASE_URL}
 ICON = 'icon-default.jpg'
 THUMB = 'thumb-default.jpg'
 ART = 'art-default.jpg'
@@ -72,7 +72,7 @@ def CreateVideoClipObject(id, title, include_container=False, **kwargs):
 		key = Callback(CreateVideoClipObject, id=id, title=title, include_container=True),
 		rating_key = 'arconaitv:{}'.format(id),
 		title = title,
-		thumb = 'https://piplong.run/t/{}.jpg?_{}'.format(String.Quote(title.replace(' ', '-').lower()), ts[:-4]),
+		thumb = 'https://api.piplong.run/assets/images/{}.jpg?_{}'.format(String.Quote(title.replace(' ', '-').lower()), ts[:-4]),
 		items = [
 			MediaObject(
 				parts = [
@@ -109,7 +109,7 @@ def Playlist(id, ts, **kwargs):
 		if not data:
 			raise Ex.MediaNotAvailable
 
-		data = requests.post('https://piplong.run/api/jsunpack/', headers={"X-Api-Key": "5e3e6f60bd1fa12f26a64a776a8ae463", "X-Base64-Encoded": "true"}, data=base64.b64encode(data.group(1)), verify=certifi.where()).text
+		data = requests.post('https://api.piplong.run/jsunpack/', headers={"X-Base64-Encoded": "true"}, data=base64.b64encode(data.group(1)), verify=certifi.where()).text
 		file = Regex("'(https:\/\/.+\.m3u8)'").search(data)
 
 		if not file:
@@ -140,4 +140,4 @@ def DownloadSegment(url):
 	try:
 		return requests.get(String.Decode(url), headers=HTTP_HEADERS, verify=False).content
 	except:
-		return requests.get('https://piplong.run/kitten.ts', headers=HTTP_HEADERS, verify=certifi.where()).content
+		return requests.get('https://api.piplong.run/assets/kitten.ts', headers=HTTP_HEADERS, verify=certifi.where()).content
